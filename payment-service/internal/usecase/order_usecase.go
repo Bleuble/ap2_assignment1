@@ -49,3 +49,17 @@ func (uc *OrderUseCase) CreateOrder(customerID, itemName string, amount int64, i
 	uc.repo.UpdateStatus(order.ID, order.Status)
 	return order, nil
 }
+
+func (uc *OrderUseCase) GetOrder(id string) (*domain.Order, error) {
+	return uc.repo.GetByID(id)
+}
+func (uc *OrderUseCase) CancelOrder(id string) error {
+	order, err := uc.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	if err := order.Cancel(); err != nil {
+		return err
+	}
+	return uc.repo.UpdateStatus(order.ID, order.Status)
+}
