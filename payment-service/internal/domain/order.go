@@ -27,3 +27,22 @@ func (o *Order) Validate() error {
 	}
 	return nil
 }
+
+func (o *Order) DanaPaid() {
+	o.Status = "Paid"
+}
+
+func (o *Order) DanaFailed() {
+	o.Status = "Failed"
+}
+
+func (o *Order) Cancel() error {
+	if o.Status == "Paid" {
+		return fmt.Errorf("paid orders cannot be cancelled")
+	}
+	if o.Status == "Cancelled" {
+		return fmt.Errorf("order is already cancelled")
+	}
+	o.Status = "Cancelled"
+	return nil
+}
