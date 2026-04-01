@@ -27,3 +27,27 @@ type CreateOrderRequest struct {
 	Amount     int64  `json:"amount"`
 }
 
+
+func (h *OrderHandler) CreateOrder(c *gin.Context) {
+	var req CreateOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid format"})
+		return
+	}
+
+	idempotencyKey := c.GetHeader("Idempotency-Key")
+
+	order, err := h.useCase.CreateOrder(req.CustomerID, req.ItemName, req.Amount, idempotencyKey)
+	if err != nil {
+		if err.Error() == "customer_id is required" || err.Error() == "item_name is required" || err.Error() == "amount must be greater than zero" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, order)
+}
+
